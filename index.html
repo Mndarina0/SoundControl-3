@@ -1,0 +1,434 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sound Control</title>
+
+<style>
+*{box-sizing:border-box}
+
+body{
+ margin:0;min-height:100vh;font-family:Arial,sans-serif;
+ background:radial-gradient(circle,#073c78,#001329 75%);
+ color:white;display:flex;justify-content:center;
+ align-items:center;overflow:hidden;
+}
+
+.emoji{
+ position:fixed;bottom:-70px;font-size:30px;
+ pointer-events:none;animation:floatUp linear infinite;
+ z-index:0;opacity:.7;
+}
+@keyframes floatUp{
+ from{transform:translateY(0) rotate(0);opacity:0}
+ 15%{opacity:.7}
+ to{transform:translateY(-115vh) rotate(360deg);opacity:0}
+}
+
+.container{
+ position:relative;z-index:2;width:90%;max-width:550px;
+ padding:35px 25px;text-align:center;
+ background:rgba(0,15,40,.9);
+ border:1px solid rgba(70,180,255,.5);
+ border-radius:25px;box-shadow:0 0 35px #008cff55;
+ backdrop-filter:blur(12px);
+}
+
+h1{font-size:32px;letter-spacing:3px;text-shadow:0 0 15px #168dff}
+.subtitle{color:#a9d8ff;margin-bottom:28px}
+
+button{cursor:pointer;color:white;font-weight:bold}
+
+.open-button{
+ width:100%;padding:20px;border:1px solid #48baff;
+ border-radius:15px;background:linear-gradient(135deg,#0876d1,#003d83);
+ font-size:20px;box-shadow:0 0 18px #008cff66;
+}
+
+.controls{
+ display:none;margin-top:35px;justify-content:center;
+ align-items:center;gap:25px;
+}
+
+.buzzer{
+ width:145px;height:145px;border-radius:50%;
+ border:7px solid #ffffff55;color:white;
+ font-size:21px;font-weight:900;
+ text-shadow:0 2px 5px #0008;
+ transition:.15s;
+}
+.buzzer:active{transform:translateY(7px) scale(.96)}
+
+.start{
+ background:radial-gradient(circle at 35% 25%,#51c5ff,#0064d9 65%,#003b91);
+ box-shadow:0 9px 0 #002c69,0 0 30px #0082ff80;
+}
+.stop{
+ background:radial-gradient(circle at 35% 25%,#ff7777,#df1010 65%,#850000);
+ box-shadow:0 9px 0 #690000,0 0 30px #ff000066;
+}
+
+.volume-box{
+ margin-top:35px;padding:18px;background:#ffffff10;
+ border:1px solid #ffffff22;border-radius:15px;
+}
+.volume-box label{display:block;margin-bottom:15px;font-weight:bold}
+input[type=range]{width:100%;accent-color:#21a5ff}
+#volumeValue{color:#55bdff}
+
+footer{margin-top:25px;color:#8ebce5;font-size:12px}
+
+/* VIDEO SCREENS */
+.screen{
+ display:none;position:fixed;inset:0;z-index:20;
+ background:#050505;justify-content:center;
+ align-items:center;flex-direction:column;
+ padding:15px;
+}
+.screen video{
+ width:100%;height:100%;max-width:1000px;
+ max-height:75vh;object-fit:contain;
+}
+.warning-title{
+ color:red;font-size:30px;font-weight:900;
+ letter-spacing:4px;margin:10px;
+ text-shadow:0 0 20px red;
+}
+.warning-icon{font-size:65px;color:red}
+.close-button{
+ display:none;margin-top:20px;padding:15px 45px;
+ border:1px solid red;border-radius:10px;
+ background:#b00020;font-size:18px;
+}
+
+/* SCARE */
+.scare-screen{
+ display:none;position:fixed;inset:0;z-index:40;
+ background:black;justify-content:center;align-items:center;
+}
+.scare-screen img{
+ width:100%;height:100%;object-fit:cover;
+ animation:scareIn .12s ease-out;
+}
+@keyframes scareIn{
+ from{transform:scale(1.3);opacity:0}
+ to{transform:scale(1);opacity:1}
+}
+
+/* CELEBRATION */
+.celebration{
+ display:none;position:fixed;inset:0;z-index:30;
+ background:radial-gradient(circle,#162c69,#020817);
+ justify-content:center;align-items:center;
+ flex-direction:column;text-align:center;
+ overflow:hidden;
+}
+.celebration h1{
+ color:#ffd700;font-size:clamp(28px,7vw,65px);
+ text-shadow:0 0 25px #ffb700;
+ letter-spacing:2px;
+ animation:pop .7s ease-out;
+}
+.celebration h2{
+ color:white;font-size:clamp(30px,8vw,70px);
+ text-shadow:0 0 25px #ffd700;
+}
+.celebration p{font-size:22px;color:#ffe88a}
+
+.confetti{
+ position:absolute;top:-50px;
+ font-size:30px;animation:fall linear infinite;
+ pointer-events:none;
+}
+@keyframes fall{
+ to{transform:translateY(115vh) rotate(720deg)}
+}
+@keyframes pop{
+ from{transform:scale(0);opacity:0}
+ to{transform:scale(1);opacity:1}
+}
+
+@media(max-width:420px){
+ .buzzer{width:115px;height:115px;font-size:18px}
+ .controls{gap:18px}
+}
+</style>
+</head>
+
+<body>
+
+<!-- BACKGROUND EMOJIS -->
+<div class="emoji" style="left:5%;animation-duration:13s">🎮</div>
+<div class="emoji" style="left:18%;animation-duration:17s;animation-delay:2s">⚡</div>
+<div class="emoji" style="left:33%;animation-duration:15s;animation-delay:4s">🔥</div>
+<div class="emoji" style="left:48%;animation-duration:19s;animation-delay:1s">🎯</div>
+<div class="emoji" style="left:63%;animation-duration:14s;animation-delay:3s">🎵</div>
+<div class="emoji" style="left:78%;animation-duration:18s;animation-delay:5s">🚀</div>
+<div class="emoji" style="left:91%;animation-duration:16s;animation-delay:2s">⭐</div>
+
+<!-- MAIN -->
+<div class="container" id="mainContainer">
+ <h1>🎮 SOUND CONTROL</h1>
+ <p class="subtitle">Advanced Audio Control System</p>
+
+ <button class="open-button" id="openButton">OPEN CONTROL</button>
+
+ <div class="controls" id="controls">
+  <button class="buzzer start" id="startButton">START</button>
+  <button class="buzzer stop" id="stopButton">STOP</button>
+ </div>
+
+ <div class="volume-box">
+  <label>VOLUME: <span id="volumeValue">100%</span></label>
+  <input type="range" id="volumeSlider" min="100" max="200" value="100">
+ </div>
+
+ <footer>SOUND CONTROL SYSTEM © 2026</footer>
+</div>
+
+<!-- STOP VIDEO AND WARNING -->
+<div class="screen" id="stopScreen">
+ <div class="warning-icon">⚠️</div>
+ <div class="warning-title">WARNING</div>
+ <video id="stopVideo" playsinline></video>
+ <button class="close-button" id="closeButton">CLOSE</button>
+</div>
+
+<!-- START VIDEO -->
+<div class="screen" id="startScreen">
+ <video id="startVideo" playsinline></video>
+</div>
+
+<!-- SCARE IMAGE -->
+<div class="scare-screen" id="scareScreen">
+ <img src="scare.jpg" alt="Surprise">
+</div>
+
+<!-- FIREWORKS CELEBRATION -->
+<div class="celebration" id="celebration">
+ <div class="confetti" style="left:5%;animation-duration:3s">🎆</div>
+ <div class="confetti" style="left:20%;animation-duration:4s">🎉</div>
+ <div class="confetti" style="left:40%;animation-duration:3.5s">✨</div>
+ <div class="confetti" style="left:60%;animation-duration:4.5s">🎊</div>
+ <div class="confetti" style="left:80%;animation-duration:3.2s">🎆</div>
+ <div class="confetti" style="left:95%;animation-duration:4s">⭐</div>
+
+ <h1>🎉 مبروك عليك 🎉</h1>
+ <h2>💰 1,000,000$ 💰</h2>
+ <p>YOU ARE A MILLIONAIRE!</p>
+</div>
+
+<audio id="audio" preload="auto"></audio>
+<audio id="fireworksAudio" preload="auto"></audio>
+
+<script>
+const sounds={
+ welcome:"welcome.mp3",
+ start:"start.mp3",
+ stop:"STOP.mp3",
+ scare:"close-scare.mp3",
+ fireworks:"fireworks.mp3"
+};
+
+const files={
+ startVideo:"start-video.mp4",
+ stopVideo:"stop-video.mp4"
+};
+
+const audio=document.getElementById("audio");
+const fireworksAudio=document.getElementById("fireworksAudio");
+const startVideo=document.getElementById("startVideo");
+const stopVideo=document.getElementById("stopVideo");
+
+const openButton=document.getElementById("openButton");
+const controls=document.getElementById("controls");
+const startButton=document.getElementById("startButton");
+const stopButton=document.getElementById("stopButton");
+const closeButton=document.getElementById("closeButton");
+
+const startScreen=document.getElementById("startScreen");
+const stopScreen=document.getElementById("stopScreen");
+const scareScreen=document.getElementById("scareScreen");
+const celebration=document.getElementById("celebration");
+
+const volumeSlider=document.getElementById("volumeSlider");
+const volumeValue=document.getElementById("volumeValue");
+
+let audioContext=null;
+let masterGain=null;
+let welcomePlayed=false;
+let busy=false;
+
+async function setupAudio(){
+ if(!audioContext){
+  const AC=window.AudioContext||window.webkitAudioContext;
+  if(AC){
+   audioContext=new AC();
+   masterGain=audioContext.createGain();
+   masterGain.connect(audioContext.destination);
+
+   const a1=audioContext.createMediaElementSource(audio);
+   const a2=audioContext.createMediaElementSource(fireworksAudio);
+   const v1=audioContext.createMediaElementSource(startVideo);
+   const v2=audioContext.createMediaElementSource(stopVideo);
+
+   a1.connect(masterGain);
+   a2.connect(masterGain);
+   v1.connect(masterGain);
+   v2.connect(masterGain);
+  }
+ }
+ if(audioContext && audioContext.state!=="running"){
+  await audioContext.resume();
+ }
+ updateVolume();
+}
+
+function updateVolume(){
+ const v=Number(volumeSlider.value);
+ volumeValue.textContent=v+"%";
+ if(masterGain) masterGain.gain.value=v/100;
+ else{
+  audio.volume=1;
+  fireworksAudio.volume=1;
+  startVideo.volume=1;
+  stopVideo.volume=1;
+ }
+}
+volumeSlider.addEventListener("input",updateVolume);
+
+function playAudio(file){
+ return new Promise(resolve=>{
+  audio.pause();
+  audio.currentTime=0;
+  audio.src=file;
+  audio.load();
+
+  let finished=false;
+  const done=()=>{
+   if(finished)return;
+   finished=true;
+   audio.removeEventListener("ended",done);
+   audio.removeEventListener("error",done);
+   resolve();
+  };
+  audio.addEventListener("ended",done,{once:true});
+  audio.addEventListener("error",done,{once:true});
+  audio.play().catch(done);
+ });
+}
+
+function playVideo(video,file){
+ return new Promise(resolve=>{
+  video.pause();
+  video.currentTime=0;
+  video.src=file;
+  video.load();
+
+  let finished=false;
+  const done=()=>{
+   if(finished)return;
+   finished=true;
+   video.removeEventListener("ended",done);
+   video.removeEventListener("error",done);
+   resolve();
+  };
+  video.addEventListener("ended",done,{once:true});
+  video.addEventListener("error",done,{once:true});
+  video.play().catch(done);
+ });
+}
+
+async function playPair(video,videoFile,soundFile){
+ await setupAudio();
+ await Promise.all([
+  playVideo(video,videoFile),
+  playAudio(soundFile)
+ ]);
+}
+
+function stopAll(){
+ audio.pause();
+ fireworksAudio.pause();
+ startVideo.pause();
+ stopVideo.pause();
+}
+
+function returnHome(){
+ stopScreen.style.display="none";
+ startScreen.style.display="none";
+ scareScreen.style.display="none";
+ celebration.style.display="none";
+ controls.style.display="none";
+ openButton.style.display="block";
+ busy=false;
+}
+
+openButton.addEventListener("click",async()=>{
+ if(busy)return;
+ await setupAudio();
+
+ controls.style.display="flex";
+ openButton.style.display="none";
+
+ if(!welcomePlayed){
+  welcomePlayed=true;
+  await playAudio(sounds.welcome);
+ }
+});
+
+startButton.addEventListener("click",async()=>{
+ if(busy)return;
+ busy=true;
+ startScreen.style.display="flex";
+
+ await playPair(startVideo,files.startVideo,sounds.start);
+
+ startScreen.style.display="none";
+ busy=false;
+});
+
+stopButton.addEventListener("click",async()=>{
+ if(busy)return;
+ busy=true;
+
+ closeButton.style.display="none";
+ stopScreen.style.display="flex";
+
+ await playPair(stopVideo,files.stopVideo,sounds.stop);
+
+ closeButton.style.display="inline-block";
+});
+
+closeButton.addEventListener("click",async()=>{
+ if(!busy)return;
+
+ closeButton.style.display="none";
+ stopScreen.style.display="none";
+ stopAll();
+
+ // SCARE: IMAGE + SOUND AT THE SAME TIME
+ scareScreen.style.display="flex";
+ await setupAudio();
+ await playAudio(sounds.scare);
+
+ // SHOW SCARE IMAGE FOR 5 SECONDS
+ await new Promise(resolve=>setTimeout(resolve,5000));
+ scareScreen.style.display="none";
+
+ // FIREWORKS + MILLION DOLLARS
+ celebration.style.display="flex";
+ await setupAudio();
+ await playAudio(sounds.fireworks);
+
+ await new Promise(resolve=>setTimeout(resolve,5000));
+
+ stopAll();
+ returnHome();
+});
+</script>
+
+</body>
+</html>
